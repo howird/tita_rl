@@ -3,47 +3,67 @@ from configs import TitaRoughCfg, TitaRoughCfgPPO
 
 class TitaFlatCfg(TitaRoughCfg):
     class env(TitaRoughCfg.env):
-        num_privileged_obs = 27 + 2 + 2
-        num_propriceptive_obs = 27 + 2 + 2 # plus 2 dof vel(wheels) and 2 actions(wheels)
+        num_envs = 8192
+        num_propriceptive_obs = 27 + 6 + 2
+        num_privileged_obs = 152
         num_actions = 8
+        env_spacing = 100.0
+        send_timeouts = True
+        episode_length_s = 20
 
     class terrain(TitaRoughCfg.terrain):
-        mesh_type = "plane"
+        mesh_type = 'plane'
+        horizontal_scale = 0.1
+        vertical_scale = 0.005
+        border_size = 50
+        curriculum = False
+        static_friction = 0.4
+        dynamic_friction = 0.6
+        restitution = 0.8
+        measure_heights_actor = False
         measure_heights_critic = False
 
     class commands(TitaRoughCfg.commands):
+        curriculum = False
+        max_curriculum = 1.
         num_commands = 3
+        resampling_time = 10.
         heading_command = False
-        resampling_time = 5.
 
-        class ranges(TitaRoughCfg.commands.ranges):
-            lin_vel_x = [-1.0, 1.0]  # min max [m/s]
-            heading = [-1.0, 1.0]
-            lin_vel_y = [0, 0]
-            ang_vel_yaw = [-3.14, 3.14]
-    
+        class ranges:
+            lin_vel_x = [-1.0, 1.0]
+            lin_vel_y = [-0.0, 0.0]
+            ang_vel_yaw = [-1, 1]
+            heading = [-3.14, 3.14]
+
     class init_state(TitaRoughCfg.init_state):
-        # pos = [0.0, 0.0, 0.8] # origin
-        pos = [0.0, 0.0, 0.34]  # x,y,z [m]
-        rot = [0.0, 0.0, 0.0, 1.0]  # x,y,z,w [quat]
-        lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
-        ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
-        default_joint_angles = {  # target angles when action = 0.0
-            "joint_left_leg_1": -0.0,
+        pos = [0.0, 0.0, 0.34]
+        rot = [0.0, 0.0, 0.0, 1.0]
+        lin_vel = [0.0, 0.0, 0.0]
+        ang_vel = [0.0, 0.0, 0.0]
+        pos_noise = 0.1
+        rot_noise = 0.1
+        default_joint_angles = {
+            "joint_left_leg_1": 0.0,
             "joint_right_leg_1": 0.0,
-            "joint_left_leg_2": 0.8,
-            "joint_right_leg_2": 0.8,
-            "joint_left_leg_3": -1.5,
-            "joint_right_leg_3": -1.5,
+            "joint_left_leg_2": 1.3,
+            "joint_right_leg_2": 1.3,
+            "joint_left_leg_3": -2.6,
+            "joint_right_leg_3": -2.6,
             "joint_left_leg_4": 0.0,
             "joint_right_leg_4": 0.0,
-        }   
-    
+            "joint_left_leg_4_1": 0.0,
+            "joint_right_leg_4_1": 0.0,
+            "joint_left_leg_4_2": 0.0,
+            "joint_right_leg_4_2": 0.0,
+            "joint_left_leg_4_3": 0.0,
+            "joint_right_leg_4_3": 0.0,
+            "joint_left_leg_4_bar": 0.0,
+            "joint_right_leg_4_bar": 0.0,
+        }
+
     class control(TitaRoughCfg.control):
-        control_type = "P_AND_V" # P: position, V: velocity, T: torques. 
-                                 # P_AND_V: some joints use position control 
-                                 # and others use vecocity control.
-        # PD Drive parameters:
+        control_type = "P_AND_V"
         stiffness = {
             "joint_left_leg_1": 30,
             "joint_left_leg_2": 30,
@@ -53,7 +73,15 @@ class TitaFlatCfg(TitaRoughCfg):
             "joint_right_leg_3": 30,
             "joint_left_leg_4": 0.0,
             "joint_right_leg_4": 0.0,
-        }  # [N*m/rad]
+            "joint_left_leg_4_1": 0.0,
+            "joint_right_leg_4_1": 0.0,
+            "joint_left_leg_4_2": 0.0,
+            "joint_right_leg_4_2": 0.0,
+            "joint_left_leg_4_3": 0.0,
+            "joint_right_leg_4_3": 0.0,
+            "joint_left_leg_4_bar": 30,
+            "joint_right_leg_4_bar": 30,
+        }
         damping = {
             "joint_left_leg_1": 0.5,
             "joint_left_leg_2": 0.5,
@@ -63,75 +91,149 @@ class TitaFlatCfg(TitaRoughCfg):
             "joint_right_leg_3": 0.5,
             "joint_left_leg_4": 0.5,
             "joint_right_leg_4": 0.5,
-        }  # [N*m*s/rad]
-        # action scale: target angle = actionscale * action + defaultangle
-        # action_scale_pos is the action scale of joints that use position control
-        # action_scale_vel is the action scale of joints that use velocity control
+            "joint_left_leg_4_1": 0.5,
+            "joint_right_leg_4_1": 0.5,
+            "joint_left_leg_4_2": 0.5,
+            "joint_right_leg_4_2": 0.5,
+            "joint_left_leg_4_3": 0.5,
+            "joint_right_leg_4_3": 0.5,
+            "joint_left_leg_4_bar": 0.5,
+            "joint_right_leg_4_bar": 0.5,
+        }
+        action_scale = 0.5
         action_scale_pos = 0.25
         action_scale_vel = 8
-        # decimation: Number of control action updates @ sim DT per policy DT
-        decimation = 4       
+        decimation = 4
 
     class asset(TitaRoughCfg.asset):
-        foot_name = "_leg_4"
-        foot_radius = 0.095
+        file = '{ROOT_DIR}/resources/tita/urdf/tita_description.urdf'
+        name = 'tita'
+        foot_name = '_leg_4'
+        terminate_after_contacts_on = ["base_link", "_leg_3"]
         penalize_contacts_on = ["base_link", "_leg_3"]
-        terminate_after_contacts_on = ["base_link", "_leg_3"]       
-        replace_cylinder_with_capsule = False       
-        self_collisions = 0  # 1 to disable, 0 to enable...bitwise filter
-    
+        disable_gravity = False
+        collapse_fixed_joints = True
+        fix_base_link = False
+        default_dof_drive_mode = 3
+        self_collisions = 0
+        replace_cylinder_with_capsule = True
+        flip_visual_attachments = False
+        density = 0.001
+        angular_damping = 0.
+        linear_damping = 0.
+        max_angular_velocity = 1000.
+        max_linear_velocity = 1000.
+        armature = 0.
+        thickness = 0.01
+
     class domain_rand(TitaRoughCfg.domain_rand):
-        friction_range = [0.2, 1.6]
-        added_mass_range = [-0.5, 2]
-        
+        randomize_friction = True
+        friction_range = [0.0, 1.6]
+        randomize_base_mass = True
+        added_mass_range = [-1., 2.]
+        randomize_base_com = True
+        rand_com_vec = [0.03, 0.02, 0.03]
+        push_robots = True
+        push_interval_s = 7
+        max_push_vel_xy = 1.
+
     class rewards(TitaRoughCfg.rewards):
-        class scales(TitaRoughCfg.rewards.scales):
-            # base class
-            lin_vel_z = 0.0 # off
-            ang_vel_xy = 0.0 # off
-            orientation = -5.0 # 很重要，不加的话会导致存活时间下降
-            base_height = -20.0
-            torques = -2.5e-05
-            dof_vel = 0.0 # off
-            dof_acc = -2.5e-07
+        class scales:
             action_rate = -0.01
+            ang_vel_xy = -0.00
+            base_height = -20.0
             collision = -10.0
-            termination = 0.0 # off
+            dof_acc = -2.5e-07
             dof_pos_limits = -2.0
-            torque_limits = 0.0 # off
-            tracking_lin_vel = 10.0
-            tracking_ang_vel = 5.0 # off
-            feet_air_time = 0.0 # off
+            dof_vel = -0.0
+            feet_air_time = 0.0
+            feet_contact_forces = -0.0
+            feet_stumble = -0.0
+            lin_vel_z = -0.0
             no_fly = 1.0
-            unbalance_feet_air_time = 0.0 # off
-            unbalance_feet_height = 0.0 # off
-            feet_stumble = 0.0 # off
+            orientation = -5.0
             stand_still = -1.0
-            feet_contact_forces = 0.0 # off
-            feet_distance = -100 # -100
-            survival = 0.1
-            # new added
-            wheel_adjustment = 1.0 # 1.0 off
-            inclination = 0.0 # off
-            leg_symmetry = 10.0
+            termination = -0.0
+            torque_limits = -0.1
+            torques = -2.5e-05
+            tracking_ang_vel = 5
+            tracking_lin_vel = 10.0
+            unbalance_feet_air_time = -0.0
+            unbalance_feet_height = -0.0
+            feet_distance = -100
+            survival = 100
+            wheel_adjustment = 1.0
+            inclination = 0.0
 
         base_height_target = 0.4
-        soft_dof_pos_limit = 0.95  # percentage of urdf limits, values above this limit are penalized
-        soft_dof_vel_limit = 1.0
+        soft_dof_pos_limit = 0.95
+        soft_dof_vel_limit = 0.9
         min_feet_distance = 0.57
         max_feet_distance = 0.60
-        tracking_sigma = 0.1 # tracking reward = exp(-error^2/sigma)
+        soft_torque_limit = 0.8
+        max_contact_force = 200.
+        only_positive_rewards = False
+        min_feet_distance = 0.1
+        min_feet_air_time = 0.25
+        max_feet_air_time = 0.65
+        tracking_sigma = 0.25
         nominal_foot_position_tracking_sigma = 0.005
         nominal_foot_position_tracking_sigma_wrt_v = 0.5
-        # base_height_target = 0.65 + 0.1664
         leg_symmetry_tracking_sigma = 0.001
-        foot_x_position_sigma = 0.001
+
+    class normalization(TitaRoughCfg.normalization):
+        class obs_scales:
+            lin_vel = 2.0
+            ang_vel = 0.25
+            dof_pos = 1.0
+            dof_vel = 0.05
+            height_measurements = 5.0
+
+        clip_observations = 100.
+        clip_actions = 100.
+
+    class noise(TitaRoughCfg.noise):
+        add_noise = True
+        noise_level = 1.0
+
+        class noise_scales:
+            dof_pos = 0.01
+            dof_vel = 1.5
+            lin_vel = 0.1
+            ang_vel = 0.2
+            gravity = 0.05
+            height_measurements = 0.1
+
+    class viewer(TitaRoughCfg.viewer):
+        ref_env = 0
+        pos = [10, 0, 6]
+        lookat = [11., 5, 3.]
+
+    class sim(TitaRoughCfg.sim):
+        dt = 0.005
+        substeps = 1
+        gravity = [0., 0., -9.81]
+        up_axis = 1
+
+        class physx:
+            num_threads = 10
+            solver_type = 1
+            num_position_iterations = 4
+            num_velocity_iterations = 0
+            contact_offset = 0.01
+            rest_offset = 0.0
+            bounce_threshold_velocity = 0.5
+            max_depenetration_velocity = 1.0
+            max_gpu_contact_pairs = 2 ** 23
+            default_buffer_size_multiplier = 5
+            contact_collection = 2
 
 class TitaFlatCfgPPO(TitaRoughCfgPPO):
     class policy(TitaRoughCfgPPO.policy):
-        actor_hidden_dims = [128, 64, 32]
-        critic_hidden_dims = [128, 64, 32]
+        actor_hidden_dims = [256, 128, 64]
+        critic_hidden_dims = [256, 128, 64]
+        init_noise_std = 1.0
 
     class runner(TitaRoughCfgPPO.runner):
-        experiment_name = 'tita_flat'
+        experiment_name = 'tita_flat_14dof'
         max_iterations = 10000

@@ -11,7 +11,7 @@ class LeggedRobotCfg(BaseConfig):
 
         num_observations = n_proprio + n_scan + history_len*n_proprio + n_priv_latent 
         num_privileged_obs = None # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
-        num_actions = 8
+        num_actions = 14  # Updated to match the number of joints (8 original + 6 new wheel joints)
         env_spacing = 3.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
@@ -99,13 +99,68 @@ class LeggedRobotCfg(BaseConfig):
         ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
         default_joint_angles = {  # target angles when action = 0.0
             "joint_a": 0.,
-            "joint_b": 0.}
+            "joint_b": 0.,
+            "joint_left_leg_1": 0.0,
+            "joint_right_leg_1": 0.0,
+            "joint_left_leg_2": 1.3,
+            "joint_right_leg_2": 1.3,
+            "joint_left_leg_3": -2.6,
+            "joint_right_leg_3": -2.6,
+            "joint_left_leg_4": 0.0,
+            "joint_right_leg_4": 0.0,
+            "joint_left_leg_4_1": 0.0,
+            "joint_right_leg_4_1": 0.0,
+            "joint_left_leg_4_2": 0.0,
+            "joint_right_leg_4_2": 0.0,
+            "joint_left_leg_4_3": 0.0,
+            "joint_right_leg_4_3": 0.0,
+            "joint_left_leg_4_bar": 0.0,
+            "joint_right_leg_4_bar": 0.0,
+        }
 
     class control:
         control_type = 'P'  # P: position, V: velocity, T: torques
         # PD Drive parameters:
-        stiffness = {'joint_a': 10.0, 'joint_b': 15.}  # [N*m/rad]
-        damping = {'joint_a': 1.0, 'joint_b': 1.5}  # [N*m*s/rad]
+        stiffness = {
+            'joint_a': 10.0, 
+            'joint_b': 15.0,
+            "joint_left_leg_1": 30,
+            "joint_left_leg_2": 30,
+            "joint_left_leg_3": 30,
+            "joint_right_leg_1": 30,
+            "joint_right_leg_2": 30,
+            "joint_right_leg_3": 30,
+            "joint_left_leg_4": 0.0,
+            "joint_right_leg_4": 0.0,
+            "joint_left_leg_4_1": 0.0,
+            "joint_right_leg_4_1": 0.0,
+            "joint_left_leg_4_2": 0.0,
+            "joint_right_leg_4_2": 0.0,
+            "joint_left_leg_4_3": 0.0,
+            "joint_right_leg_4_3": 0.0,
+            "joint_left_leg_4_bar": 0.0,
+            "joint_right_leg_4_bar": 0.0,
+        }  # [N*m/rad]
+        damping = {
+            'joint_a': 1.0, 
+            'joint_b': 1.5,
+            "joint_left_leg_1": 0.5,
+            "joint_left_leg_2": 0.5,
+            "joint_left_leg_3": 0.5,
+            "joint_right_leg_1": 0.5,
+            "joint_right_leg_2": 0.5,
+            "joint_right_leg_3": 0.5,
+            "joint_left_leg_4": 0.5,
+            "joint_right_leg_4": 0.5,
+            "joint_left_leg_4_1": 0.5,
+            "joint_right_leg_4_1": 0.5,
+            "joint_left_leg_4_2": 0.5,
+            "joint_right_leg_4_2": 0.5,
+            "joint_left_leg_4_3": 0.5,
+            "joint_right_leg_4_3": 0.5,
+            "joint_left_leg_4_bar": 0.5,
+            "joint_right_leg_4_bar": 0.5,
+        }  # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.5
         # decimation: Number of control action updates @ sim DT per policy DT
@@ -153,13 +208,6 @@ class LeggedRobotCfg(BaseConfig):
         randomize_lag_timesteps = True
         lag_timesteps = 6
 
-        # delay_update_global_steps = 24 * 8000
-        # action_delay = False
-        # action_curr_step = [1, 1]
-        # action_curr_step_scratch = [0, 1]
-        # action_delay_view = 1
-        # action_buf_len = 5
-
     class rewards:
         class scales:
             termination = -0.0
@@ -194,7 +242,6 @@ class LeggedRobotCfg(BaseConfig):
             dof_vel = 0.05
             height_measurements = 5.0
         clip_observations = 100.
-        #clip_actions = 1.2
         clip_actions = 100
 
     class noise:
@@ -250,8 +297,13 @@ class LeggedRobotCfgPPO(BaseConfig):
         rnn_type = 'lstm'
         rnn_hidden_size = 512
         rnn_num_layers = 1
-
         tanh_encoder_output = False
+        
+        # Action-related parameters
+        action_std = 1.0  # Initial action standard deviation
+        action_std_decay_rate = 0.05  # Rate at which action std decays
+        min_action_std = 0.1  # Minimum action standard deviation
+        action_std_decay_start = 0  # When to start decaying action std
     
     class algorithm:
         # training params

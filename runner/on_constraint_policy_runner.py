@@ -7,6 +7,7 @@ import warnings
 from torch.utils.tensorboard import SummaryWriter
 import torch
 from global_config import ROOT_DIR
+import torch.nn as nn
 
 from modules import ActorCriticRMA,ActorCriticBarlowTwins
 from algorithm import NP3O
@@ -42,7 +43,26 @@ class OnConstraintPolicyRunner:
                                                       **self.policy_cfg)
         if self.cfg['resume']:
             model_dict = torch.load(os.path.join(ROOT_DIR, self.cfg['resume_path']))
-            actor_critic.load_state_dict(model_dict['model_state_dict'])
+            # Handle size mismatch for action-related layers
+            state_dict = model_dict['model_state_dict']
+            new_state_dict = {}
+            
+            for key, value in state_dict.items():
+                if 'std' in key or 'actor_teacher_backbone.actor.6' in key:
+                    # Skip these layers as they need to be reinitialized
+                    continue
+                new_state_dict[key] = value
+            
+            # Load the modified state dict
+            actor_critic.load_state_dict(new_state_dict, strict=False)
+            
+            # Initialize new action-related layers
+            if hasattr(actor_critic, 'std'):
+                actor_critic.std.data.fill_(self.policy_cfg['action_std'])
+            if hasattr(actor_critic, 'actor_teacher_backbone'):
+                # Initialize the new action layer weights
+                nn.init.xavier_uniform_(actor_critic.actor_teacher_backbone.actor[6].weight)
+                nn.init.zeros_(actor_critic.actor_teacher_backbone.actor[6].bias)
         
         actor_critic.to(self.device)
         

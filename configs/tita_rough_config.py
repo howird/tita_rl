@@ -64,10 +64,16 @@ class TitaRoughCfg(BaseConfig):
             "joint_right_leg_3": -2.6,
             "joint_left_leg_4": 0.0,
             "joint_right_leg_4": 0.0,
+            "joint_left_leg_4_2": 0.0,
+            "joint_right_leg_4_2": 0.0,
+            "joint_left_leg_4_bar": 0.0,
+            "joint_right_leg_4_bar": 0.0,
         }
 
     class control:
-        control_type = 'P_AND_V'  # P: position, V: velocity, T: torques
+        control_type = "P_AND_V" # P: position, V: velocity, T: torques. 
+                                 # P_AND_V: some joints use position control 
+                                 # and others use vecocity control.
         # PD Drive parameters:
         stiffness = {
             "joint_left_leg_1": 30,
@@ -78,6 +84,10 @@ class TitaRoughCfg(BaseConfig):
             "joint_right_leg_3": 30,
             "joint_left_leg_4": 0.0,
             "joint_right_leg_4": 0.0,
+            "joint_left_leg_4_2": 0.0,
+            "joint_right_leg_4_2": 0.0,
+            "joint_left_leg_4_bar": 0.0,
+            "joint_right_leg_4_bar": 0.0,
         }  # [N*m/rad]
         damping = {
             "joint_left_leg_1": 0.5,
@@ -88,6 +98,10 @@ class TitaRoughCfg(BaseConfig):
             "joint_right_leg_3": 0.5,
             "joint_left_leg_4": 0.5,
             "joint_right_leg_4": 0.5,
+            "joint_left_leg_4_2": 0.5,
+            "joint_right_leg_4_2": 0.5,
+            "joint_left_leg_4_bar": 0.5,
+            "joint_right_leg_4_bar": 0.5,
         }  # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.5

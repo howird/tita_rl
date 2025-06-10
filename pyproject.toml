@@ -1,0 +1,29 @@
+[project]
+name = "tita-rl"
+description = ""
+authors = [
+    { name = "", email = "" },
+]
+requires-python = ">=3.8,<3.9"
+version = "0.1.0"
+dependencies = [
+    "debugpy>=1.8.5,<2",
+    "numpy>=1.24.4",
+    "rsl-rl",
+    "torch",
+    "torchvision",
+    "isaacgym",
+    "setuptools>=75.3.2",
+    "matplotlib>=3.7.5",
+    "tensorboard>=2.14.0",
+    "opencv-python>=4.11.0.86",
+]
+
+[tool.uv.sources]
+isaacgym = { workspace = true }
+rsl-rl = { git = "https://github.com/leggedrobotics/rsl_rl", tag = "v1.0.2" }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+
